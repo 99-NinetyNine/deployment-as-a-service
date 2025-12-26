@@ -14,7 +14,12 @@ def cli():
 @click.argument('github_url')
 @click.option('--domain', help='Domain for single Dockerfile project')
 def deploy(github_url, domain):
-    """Deploy a project from GitHub."""
+    """Deploy a project from GitHub or local path."""
+    
+    # Convert relative paths to absolute paths
+    if not github_url.startswith(('http://', 'https://', 'git@')):
+        github_url = os.path.abspath(github_url)
+    
     project_name = github_url.split("/")[-1].replace(".git", "")
     project_path = os.path.join(PROJECTS_DIR, project_name)
     
@@ -34,15 +39,21 @@ def deploy(github_url, domain):
         click.echo(f"Found services: {', '.join(services)}")
         for service in services:
             d = click.prompt(f"Enter domain for service '{service}' (blank to skip)", default="", show_default=False)
+            d = d.strip()  # Remove whitespace
             if d:
-                port = click.prompt(f"Enter internal port for '{service}'", default=80)
+                port = click.prompt(f"Enter internal port for '{service}'", default=8080)
                 domain_mapping[service] = {"domain": d, "port": port}
     else:
         if not domain:
             domain = click.prompt("Enter domain for this project (blank to skip)", default="", show_default=False)
+        domain = domain.strip() if domain else ""  # Remove whitespace
         if domain:
-            port = click.prompt(f"Enter internal port for this project", default=80)
+            port = click.prompt(f"Enter internal port for this project", default=8080)
             domain_mapping["app"] = {"domain": domain, "port": port}
+
+    if not domain_mapping:
+        click.echo("No domains configured. Skipping deployment.")
+        return
 
     click.echo(f"Deploying {project_name} with mappings: {domain_mapping}")
     try:

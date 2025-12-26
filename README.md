@@ -63,22 +63,36 @@ Deploy any GitHub repository containing a `Dockerfile` or `docker-compose.yml`:
 ./daas deploy <GITHUB_URL>
 ```
 
+**Important**: The port you specify is the **INTERNAL container port**, NOT a host port. Only the DaaS Nginx proxy uses host ports 80/443.
+
 **Example - Single Dockerfile Project**:
 ```bash
 ./daas deploy https://github.com/yourusername/simple-web.git
 # You'll be prompted for:
 # - Domain name (e.g., myapp.example.com or myapp_example_com)
-# - Internal port (default: 80)
+# - Internal port: 8080 (the port your app listens on INSIDE the container)
 ```
 
 **Example - Docker Compose Project**:
 ```bash
 ./daas deploy https://github.com/yourusername/multi-service.git
 # You'll be prompted for each service:
-# - frontend: domain and port
-# - api: domain and port
+# - frontend: domain and internal port 8080
+# - api: domain and internal port 5000
 # - redis: skip (no domain needed for internal services)
 ```
+
+**Port Architecture**:
+```
+Internet → Port 80/443 (DaaS Nginx Proxy) 
+  → daas-network 
+    → your-container:8080 (internal, not exposed to host)
+```
+
+- ✅ **Host Ports 80/443**: Only used by DaaS Nginx proxy
+- ✅ **Container Ports**: Your services run on ANY port internally (8080, 3000, 5000, etc.)
+- ✅ **No Port Conflicts**: Services are isolated in the Docker network
+- ❌ **Don't use port 80**: Reserved for the main proxy
 
 ### Check Deployment Status
 
@@ -112,43 +126,37 @@ Example:
 
 ## 🧪 Testing with Demo Projects
 
-Two demo projects are included in `demo-projects/`:
+Two demo projects are included in `demo-projects/` for testing:
 
 ### 1. Simple Web (Single Dockerfile)
 
+Deploy the simple-web demo:
+
 ```bash
-# Navigate to the demo project
-cd demo-projects/simple-web
-
-# Initialize a git repo (required for deployment)
-git init
-git add .
-git commit -m "Initial commit"
-
-# Deploy locally
-cd ../..
-./daas deploy /home/acer/daas/demo-projects/simple-web
-# Enter domain: localhost or test.local
-# Enter port: 80
+./daas deploy demo-projects/simple-web
+# Enter domain: test.local (or any domain)
+# Enter port: 8080
 ```
 
 ### 2. Multi-Service (Docker Compose)
 
+Deploy the multi-service demo:
+
 ```bash
-# Navigate to the demo project
-cd demo-projects/multi-service
-
-# Initialize a git repo
-git init
-git add .
-git commit -m "Initial commit"
-
-# Deploy locally
-cd ../..
-./daas deploy /home/acer/daas/demo-projects/multi-service
-# For frontend: Enter domain and port 80
-# For api: Enter domain and port 5000
+./daas deploy demo-projects/multi-service
+# For frontend: Enter domain (e.g., app.local) and port 8080
+# For api: Enter domain (e.g., api.local) and port 5000
 # For redis: Leave blank (internal service)
+```
+
+**Note**: The demo projects are regular directories in the main repo. For local testing without real domains, add entries to `/etc/hosts`:
+
+```bash
+sudo nano /etc/hosts
+# Add:
+127.0.0.1  test.local
+127.0.0.1  app.local
+127.0.0.1  api.local
 ```
 
 ## 🏗️ Architecture
