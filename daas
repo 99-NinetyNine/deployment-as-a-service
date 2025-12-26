@@ -1,0 +1,4 @@
+#!/bin/bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+export PYTHONPATH=$PYTHONPATH:$SCRIPT_DIR/engine
+$SCRIPT_DIR/engine/venv/bin/python3 $SCRIPT_DIR/engine/cli.py "$@"

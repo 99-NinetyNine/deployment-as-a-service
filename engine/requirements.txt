@@ -1,0 +1,6 @@
+GitPython
+PyYAML
+Jinja2
+docker
+click
+pydantic

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+engine/venv/
+.env
+
+# DaaS Specific
+projects/
+infra/nginx/ssl/*
+!infra/nginx/ssl/.gitkeep 
+infra/certbot/conf/*
+!infra/certbot/conf/.gitkeep
+infra/certbot/www/*
+!infra/certbot/www/.gitkeep
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+.idea/
+.vscode/
